@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Подтверждение участия</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Arial, sans-serif; margin: 0; padding: 24px; background:#faf7f5; }
+    .card { max-width: 520px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    h1 { margin: 0 0 16px; font-size: 28px; text-align: center; }
+    label { display:block; margin: 12px 0 6px; font-weight: 600; }
+    input[type="text"], input[type="tel"] { width: 100%; padding: 12px 14px; border:1px solid #ddd; border-radius:10px; font-size:16px; }
+    .radios { margin: 12px 0 4px; }
+    .radios label { font-weight: 500; display:flex; gap:8px; align-items:center; margin: 8px 0; }
+    button { width:100%; padding:14px; font-size:16px; border:0; border-radius:12px; cursor:pointer; background:#111; color:#fff; }
+    .note { margin-top: 12px; font-size: 14px; color:#666; text-align:center; }
+    .msg { margin-top: 14px; text-align:center; color: #1a7f1a; }
+    .err { color: #b00020; }
+  </style>
+</head>
+<body>
+  <div class="card" role="region" aria-label="Форма подтверждения">
+    <h1>Подтвердить участие</h1>
+    <form id="rsvp" autocomplete="on" novalidate>
+      <label for="fio">ФИО *</label>
+      <input id="fio" name="fio" type="text" required />
+
+      <label for="phone">Номер телефона *</label>
+      <input id="phone" name="phone" type="tel" inputmode="tel" placeholder="+7 999 123-45-67" required />
+
+      <div class="radios" aria-label="Статус">
+        <label><input type="radio" name="status" value="Обязуюсь явиться" required /> Обязуюсь явиться</label>
+        <label><input type="radio" name="status" value="Не смогу явиться" /> Не смогу явиться</label>
+      </div>
+
+      <!-- Скрытое поле для ботов: человек его не увидит -->
+      <input type="text" name="honeypot" style="position:absolute;left:-9999px;opacity:0" tabindex="-1" autocomplete="off" />
+
+      <button type="submit">Отправить</button>
+      <div id="msg" class="msg" aria-live="polite"></div>
+    </form>
+    <div class="note">Оставляя данные, вы соглашаетесь с обработкой персональных данных.</div>
+  </div>
+
+  <script>
+    // URL скрипта из Apps Script
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUh1VSAMJSx6hR0rywMs5_empcUjOvQ7jvJASltVLIDzo-uFCZuAGexYTHbtsLCPFEsw/exec';
+
+    const form = document.getElementById('rsvp');
+    const msg  = document.getElementById('msg');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.classList.remove('err'); 
+      msg.textContent = '';
+
+      // анти-спам: если скрытое поле заполнено - это бот
+      if (form.honeypot.value) return;
+
+      // Простая валидация телефона
+      const rawPhone = form.phone.value.trim();
+      const normalized = rawPhone.replace(/[^\d+]/g, '');
+      if (!/^\+?\d{7,15}$/.test(normalized)) {
+        msg.classList.add('err');
+        msg.textContent = 'Введите корректный номер телефона.';
+        return;
+      }
+
+      // Собираем данные
+      const fd = new FormData(form);
+      fd.set('phone', normalized);
+      fd.append('source', location.host || 'страница');
+
+      // блокируем кнопку
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Отправляем...';
+
+      try {
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
+        if (res.ok || res.type === 'opaque') {
+          msg.classList.remove('err');
+          msg.textContent = 'Спасибо! Ваш ответ записан.';
+          form.reset();
+        } else {
+          throw new Error('Ошибка сервера: ' + res.status);
+        }
+      } catch (err) {
+        console.error(err);
+        msg.classList.add('err');
+        msg.textContent = 'Не получилось отправить. Попробуйте ещё раз.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Отправить';
+      }
+    });
+  </script>
+</body>
+</html>
