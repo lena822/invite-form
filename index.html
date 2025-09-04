@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Подтверждение участия</title>
+  <title>Расписка</title>
   <style>
     body { font-family: system-ui, -apple-system, Arial, sans-serif; margin: 0; padding: 24px; background:#faf7f5; }
     .card { max-width: 520px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
@@ -21,8 +21,9 @@
 <body>
   <div class="card" role="region" aria-label="Форма подтверждения">
     <h1>Подтвердить участие</h1>
-    <form id="rsvp" autocomplete="on" novalidate>
-      <label for="fio">ФИО *</label>
+<form action="https://formsubmit.co/Antesiik1819@yandex.ru" method="POST" autocomplete="on">
+  <input type="hidden" name="_captcha" value="false">
+  <label for="fio">ФИО *</label>
       <input id="fio" name="fio" type="text" required />
 
       <label for="phone">Номер телефона *</label>
@@ -42,58 +43,21 @@
     <div class="note">Оставляя данные, вы соглашаетесь с обработкой персональных данных.</div>
   </div>
 
-  <script>
-    // URL скрипта из Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUh1VSAMJSx6hR0rywMs5_empcUjOvQ7jvJASltVLIDzo-uFCZuAGexYTHbtsLCPFEsw/exec';
+ <form action="https://formsubmit.co/ТВОЙ_EMAIL" method="POST" autocomplete="on">
+  <input type="hidden" name="_captcha" value="false">
 
-    const form = document.getElementById('rsvp');
-    const msg  = document.getElementById('msg');
-    const submitBtn = form.querySelector('button[type="submit"]');
+  <label for="fio">ФИО *</label>
+  <input id="fio" name="fio" type="text" required />
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      msg.classList.remove('err'); 
-      msg.textContent = '';
+  <label for="phone">Номер телефона *</label>
+  <input id="phone" name="phone" type="tel" placeholder="+7 999 123-45-67" required />
 
-      // анти-спам: если скрытое поле заполнено - это бот
-      if (form.honeypot.value) return;
+  <div class="radios" aria-label="Статус">
+    <label><input type="radio" name="status" value="Обязуюсь явиться" required /> Обязуюсь явиться</label>
+    <label><input type="radio" name="status" value="Не смогу явиться" /> Не смогу явиться</label>
+  </div>
 
-      // Простая валидация телефона
-      const rawPhone = form.phone.value.trim();
-      const normalized = rawPhone.replace(/[^\d+]/g, '');
-      if (!/^\+?\d{7,15}$/.test(normalized)) {
-        msg.classList.add('err');
-        msg.textContent = 'Введите корректный номер телефона.';
-        return;
-      }
-
-      // Собираем данные
-      const fd = new FormData(form);
-      fd.set('phone', normalized);
-      fd.append('source', location.host || 'страница');
-
-      // блокируем кнопку
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Отправляем...';
-
-      try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
-        if (res.ok || res.type === 'opaque') {
-          msg.classList.remove('err');
-          msg.textContent = 'Спасибо! Ваш ответ записан.';
-          form.reset();
-        } else {
-          throw new Error('Ошибка сервера: ' + res.status);
-        }
-      } catch (err) {
-        console.error(err);
-        msg.classList.add('err');
-        msg.textContent = 'Не получилось отправить. Попробуйте ещё раз.';
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Отправить';
-      }
-    });
-  </script>
+  <button type="submit">Отправить</button>
+</form>
 </body>
 </html>
